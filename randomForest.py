@@ -7,12 +7,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.naive_bayes import GaussianNB
 
-td = trainData(threshold=30)
+td = trainData(threshold=50)
 label,raw = td.getLabelsAndrawData()
 
 #process data
 ext = extractor()
 ext.highFrequencyTokens(label, raw)
+ext.extractEmoji(raw)
+ext.extractHashTags(raw)
 data = ext.batchProduceFixFeatureVec(raw)
 td.unloadData()
 
@@ -23,7 +25,7 @@ X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, 
 #y_pred = gnb.predict(X_test)
 
 # train model
-regressor = RandomForestClassifier(n_estimators=10, criterion='entropy', verbose=2, n_jobs=7)
+regressor = RandomForestClassifier(n_estimators=20, criterion='entropy', verbose=10, n_jobs=2)
 regressor.fit(X_train, y_train)
 y_pred = regressor.predict(X_test)
 
@@ -31,3 +33,4 @@ y_pred = regressor.predict(X_test)
 print(confusion_matrix(y_test,y_pred))
 print(classification_report(y_test, y_pred))
 print(accuracy_score(y_test, y_pred))
+

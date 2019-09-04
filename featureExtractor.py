@@ -5,6 +5,8 @@ import emot
 from w2v_processing import w2vAndGramsConverter
 import operator
 import string
+import tldextract
+import requests
 
 class extractor:
     def __init__(self):
@@ -24,10 +26,145 @@ class extractor:
 
         self.gramrdVocab = None
 
+        self.wV = None
+        self.tGr = None
+        self.rdGr = None
+
+        self.emDict = dict()
+        self.emList = []
+
+        self.hashTag = dict()
+        self.hashList = []
+
     def isRetweet(self, line):
         if re.search(r"[R|r][T|t]:?\s@handle:?\s?", line):
             return 1.
         return 0.
+
+    def removeCommonUsedWord_twoG(self, dic):
+        ignoreToken = [
+            "to",
+            "a",
+            'and',
+            "i",
+            "for",
+            "of",
+            "in",
+            "is",
+            "on",
+            "you",
+            "my",
+            "rt",
+            "-",
+            "at",
+            "handle",
+            "the",
+            "im"
+        ]
+
+        new_dic = dict(dic)
+
+        for k in dic.keys():
+            for t in ignoreToken:
+                if t in k:
+                    del new_dic[k]
+                    break
+
+        dic = dict(new_dic)
+
+        for k in dic.keys():
+            for v in k:
+                if len(v) <= 2:
+                    del new_dic[k]
+                    break
+        """
+        dic = dict(new_dic)
+
+        for k in dic.keys():
+            for v in k:
+                if re.search(r"http", v):
+                    del new_dic[k]
+                    break
+        """
+        return new_dic
+
+    def removeCommonThreeGram(self, dic):
+        ignoreToken = [
+            "to",
+            "a",
+            'and',
+            "i",
+            "for",
+            "of",
+            "in",
+            "is",
+            "on",
+            "you",
+            "my",
+            "rt",
+            "-",
+            "at",
+            "handle",
+            "the",
+            "im"
+        ]
+
+        new_dic = dict(dic)
+
+        for k in dic.keys():
+            for t in ignoreToken:
+                if t in k:
+                    del new_dic[k]
+                    break
+
+        dic = dict(new_dic)
+
+        for k in dic.keys():
+            for v in k:
+                if len(v) <= 2:
+                    del new_dic[k]
+                    break
+        """
+        dic = dict(new_dic)
+
+        for k in dic.keys():
+            for v in k:
+                if re.search(r"http", v):
+                    del new_dic[k]
+                    break
+        """
+        return new_dic
+
+    def removeCommonUsedWord_list(self, list):
+        ignoreToken = {
+            "to": 0,
+            "a": 0,
+            'and': 0,
+            "i": 0,
+            "for": 0,
+            "of": 0,
+            "in": 0,
+            "is": 0,
+            "on": 0,
+            "you": 0,
+            "my": 0,
+            "rt": 0,
+            "-": 0,
+            "at": 0,
+            "handle": 0,
+            "ihe": 0,
+            "im": 0
+        }
+
+        retList = []
+
+        for i in list:
+            if ignoreToken.get(i) is None and len(i) > 2:
+                retList.append(i)
+
+        return retList
+
+
 
     def removeCommonUsedWord(self, dic):
         ignoreToken = [
@@ -50,11 +187,25 @@ class extractor:
             "im"
         ]
 
+        new_dic = dict(dic)
         for t in ignoreToken:
-            if dic.get(t) is not None and len(t) <= 2:
-                del dic[t]
+            if dic.get(t) is not None:
+                del new_dic[t]
 
-        return dic
+        dic = dict(new_dic)
+
+        for k in dic.keys():
+            if len(k) <= 2:
+                del new_dic[k]
+
+        """
+        dic = dict(new_dic)
+
+        for k in dic.keys():
+            if re.search(r"http", k):
+                del new_dic[k]
+        """
+        return new_dic
 
     def removePuncu(self, line):
         s = line.translate(str.maketrans('','',string.punctuation))
@@ -63,6 +214,22 @@ class extractor:
     def lineNormalization(self, line):
         tknzr = TweetTokenizer()
         norm = w2vAndGramsConverter()
+
+        line = re.sub(r"#\s+", "",line)
+        tmp = line.split(" ")
+        str = ""
+        for t in tmp:
+            if re.search(r"http\S+", t):
+                dom = tldextract.extract(t).domain
+                if dom == 'bit':
+                    t = tldextract.extract(requests.head(t).headers['location']).domain
+                else:
+                    t = dom
+
+            str += t + " "
+
+        line = str
+
         line = norm.normalizeSentence(line)
         line = self.removePuncu(line)
         line = line.lower()
@@ -83,8 +250,11 @@ class extractor:
         for i in range(label.__len__()):
             print("calculating high frequent word features ====>" + str((i+1)*100/label.__len__()) + "%")
             if label[i] is currentUsr:
+                if label[i] == '9638':
+                    print("break")
                 line = lines[i]
                 tokens = self.lineNormalization(line)
+                #tokens = self.removeCommonUsedWord_list(tokens)
                 grams = ngrams(tokens, 2)
                 rdgr = ngrams(tokens, 3)
 
@@ -107,10 +277,13 @@ class extractor:
                         userToken[t] += 1
             else:
                 userToken = self.removeCommonUsedWord(userToken)
+                userNgram = self.removeCommonUsedWord_twoG(userNgram)
+                userrdGram = self.removeCommonThreeGram(userrdGram)
                 sortList = sorted(userToken.items(), key=operator.itemgetter(1), reverse=True)
                 gramSortList = sorted(userNgram.items(), key=operator.itemgetter(1), reverse=True)
                 rdSordList = sorted(userrdGram.items(), key=operator.itemgetter(1), reverse=True)
 
+                """
                 # fixed token position vector
                 if self.firstVocab.get(sortList[0][0]) is None:
                     self.firstVocab[sortList[0][0]] = self.firstCount
@@ -128,7 +301,7 @@ class extractor:
                 if self.secondNgram.get(gramSortList[1][0]) is None:
                     self.secondNgram[gramSortList[1][0]] = self.snc
                     self.snc += 1
-
+                """
                 if existrdGram.get(rdSordList[0][0]) is None:
                     gramrd.append(rdSordList[0][0])
                     existrdGram[rdSordList[0][0]] = gramrd.__len__()-1
@@ -148,6 +321,9 @@ class extractor:
                 if existvocab.get(sortList[1][0]) is None:
                     vocab.append(sortList[1][0])
                     existvocab[sortList[1][0]] = vocab.__len__()-1
+                if existvocab.get(sortList[2][0]) is None:
+                    vocab.append(sortList[2][0])
+                    existvocab[sortList[2][0]] = vocab.__len__()-1
 
                 userrdGram = dict()
                 userNgram = dict()
@@ -156,6 +332,7 @@ class extractor:
 
                 line = lines[i]
                 tokens = self.lineNormalization(line)
+                #tokens = self.removeCommonUsedWord_list(tokens)
                 grams = ngrams(tokens, 2)
                 rdgr = ngrams(tokens, 3)
 
@@ -176,9 +353,19 @@ class extractor:
                         userToken[t] = 1
                     else:
                         userToken[t] += 1
+
         self.vocab = existvocab
         self.ngramVocab = existGram
         self.gramrdVocab = existrdGram
+
+        self.wV = vocab
+        self.rdGr = gramrd
+        self.tGr = gram
+
+        print(self.vocab.__len__())
+        print(self.ngramVocab.__len__())
+        print(self.gramrdVocab.__len__())
+        print("break")
 
     def mentionWordRatio(self, line):
         l = re.findall(r"(?<![R|r][T|t]\s)@handle", line)
@@ -255,6 +442,28 @@ class extractor:
     +++++++++++++++++++++++++++++++
     """
 
+    def extractEmoji(self, lines):
+        count = 0
+        for line in lines:
+            line = re.sub(r"http\S+", "", line)
+            print("processing emoji: line===>" + str(count))
+            li = emot.emoticons(line)
+            count += 1
+            for v in li.get('value'):
+                if self.emDict.get(v) is None:
+                    self.emList.append(v)
+                    self.emDict[v] = self.emList.__len__()-1
+
+    def emoToVec(self, line):
+        line = re.sub(r"http\S+", "", line)
+        li = emot.emoticons(line)
+        retList = [0]*self.emList.__len__()
+        for v in li.get('value'):
+            if self.emDict.get(v) is not None:
+                retList[self.emDict.get(v)] = 1
+
+        return retList
+
     def hasEmoji(self, line):
         result = emot.emoticons(line)
         if result.__len__() > 0:
@@ -294,24 +503,48 @@ class extractor:
     def getURLFeature(self, line):
         return self.numOfURL(line)
 
+    def newWordUseFeature(self, line):
+        w = [0]*self.wV.__len__()
+        sG = [0]*self.tGr.__len__()
+        trG = [0]*self.rdGr.__len__()
+
+        t = self.lineNormalization(line)
+        gr = ngrams(t, 2)
+        grrd = ngrams(t, 3)
+
+        for word in t:
+            if self.vocab.get(word) is not None:
+                w[self.vocab.get(word)] = 1
+
+        for s in gr:
+            if self.ngramVocab.get(s) is not None:
+                sG[self.ngramVocab.get(s)] = 1
+
+        for tri in grrd:
+            if self.gramrdVocab.get(tri) is not None:
+                trG[self.gramrdVocab.get(tri)] = 1
+
+        return w+sG+trG
+
     def wordUseFeature(self, line):
         tokens = self.lineNormalization(line)
         count = 0
-        feature = [-1,-1,-1,-1,-1,-1]
+        feature = [-1,-1,-1,-1,-1]
 
         gr = ngrams(tokens, 2)
         grrd = ngrams(tokens, 3)
 
         for rd in grrd:
             if self.gramrdVocab.get(rd) is not None:
-                feature[5] = self.gramrdVocab[rd]
+                feature[4] = self.gramrdVocab[rd]
                 break
 
         for g in gr:
             if self.firstNgram.get(g) is not None:
                 feature[0] = self.firstNgram[g]
-            elif self.secondNgram.get(g) is not None:
-                feature[1] = self.secondNgram[g]
+                break
+            #elif self.secondNgram.get(g) is not None:
+                #feature[1] = self.secondNgram[g]
 
 
         for t in tokens:
@@ -321,7 +554,7 @@ class extractor:
             elif self.secondVocab.get(t) is not None:
                 feature[3] = self.secondVocab.get(t)
             elif self.thirdVocab.get(t) is not None:
-                feature[4] = self.thirdVocab.get(t)
+                feature[1] = self.thirdVocab.get(t)
 
         return feature
 
@@ -374,6 +607,28 @@ class extractor:
             return 1
         return 0
 
+    def extractHashTags(self, lines):
+        count = 0
+        for line in lines:
+            print(count)
+            li = re.findall(r"#\w+", line)
+            for h in li:
+                if self.hashTag.get(h) is None:
+                    self.hashList.append(h)
+                    self.hashTag[h] = self.hashList.__len__()-1
+                    count += 1
+
+        print("break")
+
+    def hashToValue(self, line):
+        retVal = [0]*self.hashList.__len__()
+        li = re.findall(r"#\w+", line)
+        for h in li:
+            if self.hashTag.get(h) is not None:
+                retVal[self.hashTag.get(h)] = 1
+
+        return retVal
+
     def hasHash(self, line):
         return re.findall(r"#\w+", line).__len__()
         """
@@ -383,19 +638,24 @@ class extractor:
         """
 
     def lineToFixFeatureVec(self, line):
+        self.firstVocab = None
+        self.secondVocab = None
+        self.thirdVocab = None
+        self.firstNgram = None
+        self.secondNgram = None
+
         return [
             self.tweetLength(line),
             self.isRT(line),
             self.getURLFeature(line),
             self.hasMention(line),
             self.hasRepeatLetters(line),
+            self.hasEmoji(line),
             self.hasNum(line),
             self.containMoney(line),
             self.useOfPuncs(line),
             self.hasCaptialWord(line),
-            self.hasEmoji(line),
-            self.hasHash(line),
-        ] + self.wordUseFeature(line)
+        ] + self.newWordUseFeature(line) + self.emoToVec(line) + self.hashToValue(line)
 
     def batchProduceFixFeatureVec(self, lines):
         print("transfering rawdata into vectors.....")
