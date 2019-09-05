@@ -223,9 +223,12 @@ class extractor:
             if links.__len__() > 0:
                 dom = tldextract.extract(links[0]).domain
                 if dom == 'bit':
-                    t = tldextract.extract(requests.head(links[0]).headers['location']).domain
+                    try:
+                        t = tldextract.extract(requests.head(links[0]).headers['location']).domain
+                    except:
+                        t = "invaildURL"
                 else:
-                    t = "invaildURL"
+                    t = dom
 
             str += t + " "
 
