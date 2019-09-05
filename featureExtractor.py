@@ -219,12 +219,13 @@ class extractor:
         tmp = line.split(" ")
         str = ""
         for t in tmp:
-            if re.search(r"http\S+", t):
-                dom = tldextract.extract(t).domain
+            links = re.findall(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", t)
+            if links.__len__() > 0:
+                dom = tldextract.extract(links[0]).domain
                 if dom == 'bit':
-                    t = tldextract.extract(requests.head(t).headers['location']).domain
+                    t = tldextract.extract(requests.head(links[0]).headers['location']).domain
                 else:
-                    t = dom
+                    t = "invaildURL"
 
             str += t + " "
 
@@ -283,30 +284,11 @@ class extractor:
                 gramSortList = sorted(userNgram.items(), key=operator.itemgetter(1), reverse=True)
                 rdSordList = sorted(userrdGram.items(), key=operator.itemgetter(1), reverse=True)
 
-                """
-                # fixed token position vector
-                if self.firstVocab.get(sortList[0][0]) is None:
-                    self.firstVocab[sortList[0][0]] = self.firstCount
-                    self.firstCount += 1
-                if self.secondVocab.get(sortList[1][0]) is None:
-                    self.secondVocab[sortList[1][0]] = self.secondCount
-                    self.secondCount += 1
-                if self.thirdVocab.get(sortList[2][0]) is None:
-                    self.thirdVocab[sortList[2][0]] = self.thirdCount
-                    self.thirdCount += 1
 
-                if self.firstNgram.get(gramSortList[0][0]) is None:
-                    self.firstNgram[gramSortList[0][0]] = self.fnc
-                    self.fnc += 1
-                if self.secondNgram.get(gramSortList[1][0]) is None:
-                    self.secondNgram[gramSortList[1][0]] = self.snc
-                    self.snc += 1
-                """
                 if existrdGram.get(rdSordList[0][0]) is None:
                     gramrd.append(rdSordList[0][0])
                     existrdGram[rdSordList[0][0]] = gramrd.__len__()-1
 
-                # not used
                 if existGram.get(gramSortList[0][0]) is None:
                     gram.append(gramSortList[0][0])
                     existGram[gramSortList[0][0]] = gram.__len__()-1
@@ -314,7 +296,6 @@ class extractor:
                     gram.append(gramSortList[1][0])
                     existGram[gramSortList[1][0]] = gram.__len__()-1
 
-                # store top 2 user frequent words, not using
                 if existvocab.get(sortList[0][0]) is None:
                     vocab.append(sortList[0][0])
                     existvocab[sortList[0][0]] = vocab.__len__()-1
