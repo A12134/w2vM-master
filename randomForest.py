@@ -9,6 +9,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.naive_bayes import GaussianNB
 from sys import getsizeof
 import pickle
+import atexit
 
 td = trainData(threshold=50)
 testd = testData()
@@ -24,6 +25,7 @@ ext.extractHashTags(raw)
 data = ext.batchProduceFixFeatureVec(raw)
 tdata = ext.batchProduceFixFeatureVec(testd.getAllTweets())
 td.unloadData()
+ext.saveCacheFiles()
 ext.unloadExt()
 ext = None
 raw = None
