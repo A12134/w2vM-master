@@ -10,6 +10,7 @@ from sklearn.naive_bayes import GaussianNB
 from sys import getsizeof
 import pickle
 import atexit
+import gc
 
 td = trainData(threshold=50)
 testd = testData()
@@ -31,7 +32,8 @@ ext = None
 raw = None
 
 print(getsizeof(data))
-print("break")
+print("clean trash...")
+gc.collect()
 #X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, random_state=0)
 
 
