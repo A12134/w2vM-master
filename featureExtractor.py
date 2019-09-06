@@ -677,15 +677,7 @@ class extractor:
             self.hasCaptialWord(line),
         ] + self.newWordUseFeature(line) + self.emoToVec(line) + self.hashToValue(line)
 
-    def batchProduceFixFeatureVec(self, lines):
-        print("transfering rawdata into vectors.....")
-        retArr = []
-        for i in range(lines.__len__()):
-            print("transfering rawdata into vectors ======>" + str((i+1)*100/lines.__len__()))
-            retArr.append(self.lineToFixFeatureVec(lines[i]))
-
-        print("transfer complete!, unloading data")
-
+    def unloadExt(self):
         self.vocab = None
         self.firstVocab = dict()
         self.firstCount = 0
@@ -712,9 +704,20 @@ class extractor:
         self.hashTag = dict()
         self.hashList = []
 
-        self.sess.close()
+        self.sess = close()
 
         self.linkHash = dict()
+
+    def batchProduceFixFeatureVec(self, lines):
+        print("transfering rawdata into vectors.....")
+        retArr = []
+        for i in range(lines.__len__()):
+            print("transfering rawdata into vectors ======>" + str((i+1)*100/lines.__len__()))
+            retArr.append(self.lineToFixFeatureVec(lines[i]))
+
+        print("transfer complete!, unloading data")
+
+
 
         return retArr
 
