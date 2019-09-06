@@ -222,7 +222,7 @@ class extractor:
     def loadCacheFile(self):
         print("loading cache data.....")
         if os.path.exists("URLCache.json"):
-            fp = open("URLCache.json", 'r').readlines()
+            fp = open("URLCache.json", 'r')
             self.linkHash = json.load(fp)
             print("load finish")
             return
@@ -526,6 +526,8 @@ class extractor:
         sG = [0]*self.tGr.__len__()
         trG = [0]*self.rdGr.__len__()
 
+        line = re.sub(r"#\w+", "", line)
+
         t = self.lineNormalization(line)
         gr = ngrams(t, 2)
         grrd = ngrams(t, 3)
@@ -682,7 +684,38 @@ class extractor:
             print("transfering rawdata into vectors ======>" + str((i+1)*100/lines.__len__()))
             retArr.append(self.lineToFixFeatureVec(lines[i]))
 
-        print("transfer complete!")
+        print("transfer complete!, unloading data")
+
+        self.vocab = None
+        self.firstVocab = dict()
+        self.firstCount = 0
+        self.secondVocab = dict()
+        self.secondCount = 0
+        self.thirdVocab = dict()
+        self.thirdCount = 0
+
+        self.ngramVocab = None
+        self.firstNgram = dict()
+        self.fnc = 0
+        self.secondNgram = dict()
+        self.snc = 0
+
+        self.gramrdVocab = None
+
+        self.wV = None
+        self.tGr = None
+        self.rdGr = None
+
+        self.emDict = dict()
+        self.emList = []
+
+        self.hashTag = dict()
+        self.hashList = []
+
+        self.sess.close()
+
+        self.linkHash = dict()
+
         return retArr
 
     # 0: no capital of word

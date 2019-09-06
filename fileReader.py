@@ -89,3 +89,14 @@ class testData:
         if num > 0:
             return self.tweetList[:num]
         return []
+
+
+def writeToCsv(d):
+    fp = open("predicted.csv", 'w')
+    fp.write("Id,Predicted\n")
+    id = 1
+    for s in d:
+        print("writing........." + str(id))
+        fp.write(str(id) + "," + s + '\n')
+
+    fp.close()

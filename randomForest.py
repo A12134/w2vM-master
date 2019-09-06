@@ -1,29 +1,37 @@
 import pandas as pd
 import numpy as np
-from fileReader import trainData
+from fileReader import trainData, testData
+import fileReader
 from sklearn.model_selection import train_test_split
 from featureExtractor import extractor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.naive_bayes import GaussianNB
-import atexit
-
+from sys import getsizeof
+import pickle
 
 td = trainData(threshold=50)
+testd = testData()
 label,raw = td.getLabelsAndrawData()
 
 #process data
 ext = extractor()
-atexit.register(ext.saveCacheFiles)
+
 ext.loadCacheFile()
 ext.highFrequencyTokens(label, raw)
 ext.extractEmoji(raw)
 ext.extractHashTags(raw)
 data = ext.batchProduceFixFeatureVec(raw)
-ext.saveCacheFiles()
+tdata = ext.batchProduceFixFeatureVec(testd.getAllTweets())
 td.unloadData()
+ext = None
+raw = None
 
-X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, random_state=0)
+print(getsizeof(data))
+print("break")
+#X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, random_state=0)
+
+
 
 #gnb = GaussianNB()
 #gnb.fit(X_train, y_train)
@@ -31,11 +39,11 @@ X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, 
 
 # train model
 regressor = RandomForestClassifier(n_estimators=20, criterion='entropy', verbose=10, n_jobs=2)
-regressor.fit(X_train, y_train)
-y_pred = regressor.predict(X_test)
+regressor.fit(data, label)
+data = None
+label = None
+y_pred = regressor.predict(tdata)
 
-# print output
-print(confusion_matrix(y_test,y_pred))
-print(classification_report(y_test, y_pred))
-print(accuracy_score(y_test, y_pred))
-
+fileReader.writeToCsv(y_pred)
+print("finished!!!!")
+# print outpu
