@@ -33,7 +33,7 @@ raw = None
 
 print(getsizeof(data))
 print("clean trash...")
-gc.collect()
+
 #X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, random_state=0)
 
 
