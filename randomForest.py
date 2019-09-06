@@ -28,8 +28,8 @@ tdata = ext.batchProduceFixFeatureVec(testd.getAllTweets())
 td.unloadData()
 #ext.saveCacheFiles()
 ext.unloadExt()
-ext = None
-raw = None
+del ext
+del raw
 
 print(getsizeof(data))
 print("clean trash...")
