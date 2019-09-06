@@ -704,7 +704,7 @@ class extractor:
         self.hashTag = dict()
         self.hashList = []
 
-        self.sess = close()
+        self.sess.close()
 
         self.linkHash = dict()
 

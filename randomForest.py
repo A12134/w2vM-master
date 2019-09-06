@@ -26,7 +26,7 @@ ext.extractHashTags(raw)
 data = ext.batchProduceFixFeatureVec(raw)
 tdata = ext.batchProduceFixFeatureVec(testd.getAllTweets())
 td.unloadData()
-ext.saveCacheFiles()
+#ext.saveCacheFiles()
 ext.unloadExt()
 ext = None
 raw = None
