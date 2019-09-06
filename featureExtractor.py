@@ -7,6 +7,9 @@ import operator
 import string
 import tldextract
 import requests
+import time
+import json
+import os.path
 
 class extractor:
     def __init__(self):
@@ -35,6 +38,10 @@ class extractor:
 
         self.hashTag = dict()
         self.hashList = []
+
+        self.sess = requests.session()
+
+        self.linkHash = dict()
 
     def isRetweet(self, line):
         if re.search(r"[R|r][T|t]:?\s@handle:?\s?", line):
@@ -207,6 +214,19 @@ class extractor:
         """
         return new_dic
 
+    def saveCacheFiles(self):
+        print("saving cached data.....")
+        with open("URLCache.json", 'w') as fp:
+            json.dump(self.linkHash, fp)
+
+    def loadCacheFile(self):
+        print("loading cached data.....")
+        if os.path.exists("URLCache.json"):
+            fp = open("URLCache.json", 'r').readlines()
+            self.linkHash = json.load(fp)
+            print("load finish")
+        print("cached data not found")
+
     def removePuncu(self, line):
         s = line.translate(str.maketrans('','',string.punctuation))
         return s
@@ -217,22 +237,35 @@ class extractor:
 
         line = re.sub(r"#\s+", "",line)
         tmp = line.split(" ")
-        str = ""
+        st = ""
         for t in tmp:
+            #reStart = time.time()
             links = re.findall(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", t)
+            #print("reg time spend: " +  str(time.time() - reStart))
             if links.__len__() > 0:
+                #etStart = time.time()
                 dom = tldextract.extract(links[0]).domain
+                #print("first ext time spend: " + str(time.time() - etStart))
                 if dom == 'bit':
-                    try:
-                        t = tldextract.extract(requests.head(links[0]).headers['location']).domain
-                    except:
-                        t = "invaildURL"
+                    if self.linkHash.get(links[0]) is None:
+                        try:
+                            #exreStart = time.time()
+                            t = tldextract.extract(self.sess.head(links[0]).headers['location']).domain
+
+                            #print("request and extract time spend:" + str(time.time() - exreStart))
+                        except:
+                            t = "invaildURL"
+
+                        self.linkHash[links[0]] = t
+
+                    else:
+                        t = self.linkHash.get(links[0])
                 else:
                     t = dom
 
-            str += t + " "
+            st += t + " "
 
-        line = str
+        line = st
 
         line = norm.normalizeSentence(line)
         line = self.removePuncu(line)
