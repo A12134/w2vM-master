@@ -215,17 +215,18 @@ class extractor:
         return new_dic
 
     def saveCacheFiles(self):
-        print("saving cached data.....")
+        print("saving cache data.....")
         with open("URLCache.json", 'w') as fp:
             json.dump(self.linkHash, fp)
 
     def loadCacheFile(self):
-        print("loading cached data.....")
+        print("loading cache data.....")
         if os.path.exists("URLCache.json"):
             fp = open("URLCache.json", 'r').readlines()
             self.linkHash = json.load(fp)
             print("load finish")
-        print("cached data not found")
+            return
+        print("cache data not found")
 
     def removePuncu(self, line):
         s = line.translate(str.maketrans('','',string.punctuation))
