@@ -33,7 +33,7 @@ raw = None
 
 print(getsizeof(data))
 print("clean trash...")
-gc.collect()
+
 #X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.2, random_state=0)
 
 
@@ -45,6 +45,8 @@ gc.collect()
 # train model
 regressor = RandomForestClassifier(n_estimators=20, criterion='entropy', verbose=10, n_jobs=2)
 regressor.fit(data, label)
+
+pickle.dump(regressor, open("rf.model", 'wb'))
 data = None
 label = None
 y_pred = regressor.predict(tdata)
