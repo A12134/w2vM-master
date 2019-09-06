@@ -45,6 +45,8 @@ gc.collect()
 # train model
 regressor = RandomForestClassifier(n_estimators=20, criterion='entropy', verbose=10, n_jobs=2)
 regressor.fit(data, label)
+
+pickle.dump(regressor, open("rf.model", 'wb'))
 data = None
 label = None
 y_pred = regressor.predict(tdata)
