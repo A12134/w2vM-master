@@ -14,11 +14,11 @@ import gc
 import ctypes
 
 
-def malloc_trim():
-    ctypes.CDLL('libc.so.6').malloc_trim(0)
+#def malloc_trim():
+    #ctypes.CDLL('libc.so.6').malloc_trim(0)
 
 def scope():
-    td = trainData(threshold=50)
+    td = trainData(threshold=20)
     testd = testData()
     label,raw = td.getLabelsAndrawData()
 
@@ -32,7 +32,7 @@ def scope():
     data = ext.batchProduceFixFeatureVec(raw)
     tdata = ext.batchProduceFixFeatureVec(testd.getAllTweets())
     td.unloadData()
-    #ext.saveCacheFiles()
+    ext.saveCacheFiles()
     #ext.unloadExt()
     del ext
     del raw
@@ -41,7 +41,7 @@ def scope():
     print(getsizeof(data))
     print("clean trash...")
 
-    malloc_trim()
+    #malloc_trim()
 
 
     return label, data, tdata
@@ -57,7 +57,7 @@ def scope():
 label, data, tdata = scope()
 
 # train model
-regressor = RandomForestClassifier(n_estimators=20, criterion='entropy', verbose=10, n_jobs=2)
+regressor = RandomForestClassifier(n_estimators=30, criterion='entropy', verbose=10, n_jobs=8)
 regressor.fit(data, label)
 
 pickle.dump(regressor, open("rf.model", 'wb'))
