@@ -320,28 +320,29 @@ class extractor:
                 sortList = sorted(userToken.items(), key=operator.itemgetter(1), reverse=True)
                 gramSortList = sorted(userNgram.items(), key=operator.itemgetter(1), reverse=True)
                 rdSordList = sorted(userrdGram.items(), key=operator.itemgetter(1), reverse=True)
+		
+		try:
+                	if existrdGram.get(rdSordList[0][0]) is None:
+                    		gramrd.append(rdSordList[0][0])
+                    		existrdGram[rdSordList[0][0]] = gramrd.__len__()-1
+                	if existGram.get(gramSortList[0][0]) is None:
+                    		gram.append(gramSortList[0][0])
+                    		existGram[gramSortList[0][0]] = gram.__len__()-1
+                	if existGram.get(gramSortList[1][0]) is None:
+                    		gram.append(gramSortList[1][0])
+                    		existGram[gramSortList[1][0]] = gram.__len__()-1
 
-		if rdSordList.__len__()>0:
-                    if existrdGram.get(rdSordList[0][0]) is None:
-                        gramrd.append(rdSordList[0][0])
-                        existrdGram[rdSordList[0][0]] = gramrd.__len__()-1
-		if gramSortList.__len__()>0:
-                    if existGram.get(gramSortList[0][0]) is None:
-                        gram.append(gramSortList[0][0])
-                        existGram[gramSortList[0][0]] = gram.__len__()-1
-                    if existGram.get(gramSortList[1][0]) is None:
-                        gram.append(gramSortList[1][0])
-                        existGram[gramSortList[1][0]] = gram.__len__()-1
-
-                if existvocab.get(sortList[0][0]) is None:
-                    vocab.append(sortList[0][0])
-                    existvocab[sortList[0][0]] = vocab.__len__()-1
-                if existvocab.get(sortList[1][0]) is None:
-                    vocab.append(sortList[1][0])
-                    existvocab[sortList[1][0]] = vocab.__len__()-1
-                if existvocab.get(sortList[2][0]) is None:
-                    vocab.append(sortList[2][0])
-                    existvocab[sortList[2][0]] = vocab.__len__()-1
+                	if existvocab.get(sortList[0][0]) is None:
+			    vocab.append(sortList[0][0])
+			    existvocab[sortList[0][0]] = vocab.__len__()-1
+			if existvocab.get(sortList[1][0]) is None:
+			    vocab.append(sortList[1][0])
+			    existvocab[sortList[1][0]] = vocab.__len__()-1
+			if existvocab.get(sortList[2][0]) is None:
+			    vocab.append(sortList[2][0])
+			    existvocab[sortList[2][0]] = vocab.__len__()-1
+		except:
+			continue
 
                 userrdGram = dict()
                 userNgram = dict()
